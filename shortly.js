@@ -10,11 +10,13 @@ var User = require('./app/models/user');
 var Links = require('./app/collections/links');
 var Link = require('./app/models/link');
 var Click = require('./app/models/click');
+var session = require('express-session');
 
 var app = express();
 
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
+app.use(session({secret: 'tenzinjackie'}));
 app.use(partials());
 // Parse JSON (uniform resource locators)
 app.use(bodyParser.json());
@@ -22,11 +24,20 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname + '/public'));
 
-var signedIn = false;
+var checkUser = function (sess) {
+  //if if user has a valid session (userID)
+  if (sess.userId) {
+    return true;
+  }
+  return false;
+};
+
+var sess; 
 
 app.get('/', 
 function(req, res) {
-  if (signedIn) {
+  sess = req.session;
+  if (checkUser(sess)) {
     res.render('index');
   } else {
     res.redirect('/login');
@@ -45,7 +56,8 @@ app.get('/signup',
 
 app.get('/create', 
 function(req, res) {
-  if (signedIn) {
+  sess = req.session;
+  if (checkUser(sess)) {
     res.render('index');
   } else {
     res.redirect('/login');
@@ -54,7 +66,8 @@ function(req, res) {
 
 app.get('/links', 
 function(req, res) {
-  // if (!signedIn) {
+  //sess = req.session;
+  // if (!checkUser(sess)) {
   //   res.redirect('/login');
   // } else {
   Links.reset().fetch().then(function(links) {
@@ -66,7 +79,7 @@ function(req, res) {
 
 
 app.post('/links', 
-function(req, res) {
+function (req, res) {
   var uri = req.body.url;
 
   if (!util.isValidUrl(uri)) {
@@ -102,14 +115,28 @@ function(req, res) {
 /************************************************************/
 app.post('/signup', 
   function(req, res) {
-    new User ({
-      username: req.body.username,
-      password: req.body.password
-    }).save().then(function() {
-      res.redirect('/');
+    new User ({ username: req.body.username }).fetch().then(function(match) {
+      if (match) {
+        console.log('Username is already in use. Please select a unique username.');
+        res.redirect('/signup');
+      } else {
+        Users.create({
+          username: req.body.username,
+          password: req.body.password
+        })
+        .then(function() {
+          res.redirect('/');
+        });
+      }
     });
   });
 
+app.post('/login', function (req, res) {
+  //check if username and password matches the db
+
+  //if it matches, set userID in the sessions 
+  res.end();
+});
 
 /************************************************************/
 // Handle the wildcard route last - if all other routes fail
