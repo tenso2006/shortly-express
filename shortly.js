@@ -22,15 +22,29 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname + '/public'));
 
+var signedIn = false;
 
 app.get('/', 
 function(req, res) {
-  res.render('index');
+  if (signedIn) {
+    res.render('index');
+  } else {
+    res.redirect('/login');
+  }
+});
+
+app.get('/login', 
+function(req, res) {
+  res.render('login');
 });
 
 app.get('/create', 
 function(req, res) {
-  res.render('index');
+  if (signedIn) {
+    res.render('index');
+  } else {
+    res.redirect('/login');
+  }
 });
 
 app.get('/links', 
@@ -75,7 +89,6 @@ function(req, res) {
 /************************************************************/
 // Write your authentication routes here
 /************************************************************/
-
 
 
 /************************************************************/
