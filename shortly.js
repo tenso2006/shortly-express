@@ -38,6 +38,11 @@ function(req, res) {
   res.render('login');
 });
 
+app.get('/signup', 
+  function(req, res) {
+    res.render('signup');
+  });
+
 app.get('/create', 
 function(req, res) {
   if (signedIn) {
@@ -49,10 +54,16 @@ function(req, res) {
 
 app.get('/links', 
 function(req, res) {
+  // if (!signedIn) {
+  //   res.redirect('/login');
+  // } else {
   Links.reset().fetch().then(function(links) {
     res.status(200).send(links.models);
+    //res.render('links');
   });
+  //}
 });
+
 
 app.post('/links', 
 function(req, res) {
@@ -89,6 +100,15 @@ function(req, res) {
 /************************************************************/
 // Write your authentication routes here
 /************************************************************/
+app.post('/signup', 
+  function(req, res) {
+    new User ({
+      username: req.body.username,
+      password: req.body.password
+    }).save().then(function() {
+      res.redirect('/');
+    });
+  });
 
 
 /************************************************************/
