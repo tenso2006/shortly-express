@@ -66,15 +66,14 @@ function(req, res) {
 
 app.get('/links', 
 function(req, res) {
-  //sess = req.session;
-  // if (!checkUser(sess)) {
-  //   res.redirect('/login');
-  // } else {
-  Links.reset().fetch().then(function(links) {
-    res.status(200).send(links.models);
-    //res.render('links');
-  });
-  //}
+  sess = req.session;
+  if (checkUser(sess)) {
+    Links.reset().fetch().then(function(links) {
+      res.status(200).send(links.models);
+    });
+  } else {
+    res.redirect('/login');
+  }
 });
 
 
@@ -133,9 +132,16 @@ app.post('/signup',
 
 app.post('/login', function (req, res) {
   //check if username and password matches the db
-
-  //if it matches, set userID in the sessions 
-  res.end();
+  new User ({ username: req.body.username, password: req.body.password})
+    .fetch().then(function (match) {
+      if (match) {
+        req.session.userId = req.body.username;
+        res.redirect('/');
+      } else {
+        console.log('Invalid user information! ');
+        res.redirect('/login');
+      }
+    });
 });
 
 /************************************************************/
