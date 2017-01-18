@@ -45,6 +45,13 @@ function(req, res) {
   }
 });
 
+app.get('/logout',
+  function(req, res) {
+    req.session.destroy(function () {
+      res.render('login');
+    });
+  });
+
 app.get('/login', 
 function(req, res) {
   res.render('login');
