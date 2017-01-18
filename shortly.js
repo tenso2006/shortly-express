@@ -2,6 +2,7 @@ var express = require('express');
 var util = require('./lib/utility');
 var partials = require('express-partials');
 var bodyParser = require('body-parser');
+var bcrypt = require('bcrypt-nodejs');
 
 
 var db = require('./app/config');
@@ -132,11 +133,18 @@ app.post('/signup',
 
 app.post('/login', function (req, res) {
   //check if username and password matches the db
-  new User ({ username: req.body.username, password: req.body.password})
-    .fetch().then(function (match) {
-      if (match) {
-        req.session.userId = req.body.username;
-        res.redirect('/');
+
+  new User ({ username: req.body.username })
+    .fetch().then(function (user) {
+      if (user) {
+        bcrypt.compare(req.body.password, user.get('password'), function(err, match) {                 
+          if (match) {
+            req.session.userId = req.body.username;
+            res.redirect('/'); 
+          } else {
+            res.redirect('/login');
+          }
+        });
       } else {
         console.log('Invalid user information! ');
         res.redirect('/login');
